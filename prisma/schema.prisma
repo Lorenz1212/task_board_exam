@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  done
+}
+
+enum Priority {
+  low
+  medium
+  high
+}
+
+model Board {
+  id          Int      @id @default(autoincrement())  // <-- Changed to Int
+  name        String
+  description String?
+  color       String?  @default("#6366f1")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  tasks       Task[]
+
+  @@index([createdAt])
+  @@map("boards")
+}
+
+model Task {
+  id          Int        @id @default(autoincrement())  // <-- Changed to Int
+  boardId     Int        @map("board_id")               // <-- Changed to Int
+  board       Board      @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      TaskStatus @default(todo)
+  priority    Priority   @default(medium)
+  dueDate     DateTime?  @map("due_date")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@index([boardId])
+  @@index([status])
+  @@index([priority])
+  @@map("tasks")
+}
