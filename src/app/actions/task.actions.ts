@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/app/lib/prisma";
+import { syncTaskCreated, syncTaskUpdated, syncTaskDeleted } from "@/app/lib/neo4j-sync";
 import type { ActionResult, Task } from "@/app/lib/types";
 
 const dateTransform = (val: string | null | undefined) => {
@@ -54,6 +55,7 @@ export async function createTask(
       },
     });
     revalidatePath(`/board/${parsed.data.boardId}`);
+    syncTaskCreated(task.id, task.boardId, task.title, task.status, task.priority);
     return { success: true, data: task };
   } catch (err) {
     console.error("[createTask]", err);
@@ -85,6 +87,7 @@ export async function updateTask(
       data: parsed.data,
     });
     revalidatePath(`/board/${boardId}`);
+    syncTaskUpdated(task.id, { title: task.title, status: task.status, priority: task.priority });
     return { success: true, data: task };
   } catch (err) {
     console.error("[updateTask]", err);
@@ -103,6 +106,7 @@ export async function updateTaskStatus(
       data: { status },
     });
     revalidatePath(`/board/${boardId}`);
+    syncTaskUpdated(task.id, { status: task.status });
     return { success: true, data: task };
   } catch (err) {
     console.error("[updateTaskStatus]", err);
@@ -117,6 +121,7 @@ export async function deleteTask(
   try {
     await prisma.task.delete({ where: { id } });
     revalidatePath(`/board/${boardId}`);
+    syncTaskDeleted(id);
     return { success: true, data: undefined };
   } catch (err) {
     console.error("[deleteTask]", err);

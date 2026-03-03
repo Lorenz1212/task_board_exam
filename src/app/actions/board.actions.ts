@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/app/lib/prisma";
+import { syncBoardCreated, syncBoardUpdated, syncBoardDeleted } from "@/app/lib/neo4j-sync";
 import type { ActionResult, BoardWithTaskCount, BoardWithTasks } from "@/app/lib/types";
 
 const CreateBoardSchema = z.object({
@@ -40,6 +41,7 @@ export async function createBoard(
       },
     });
     revalidatePath("/");
+    syncBoardCreated(board.id, board.name, board.color ?? "#6366f1");
     return { success: true, data: { id: board.id } };
   } catch (err) {
     console.error("[createBoard]", err);
@@ -106,6 +108,7 @@ export async function updateBoard(
     });
     revalidatePath("/");
     revalidatePath(`/board/${id}`);
+    syncBoardUpdated(board.id, board.name, board.color ?? undefined);
     return { success: true, data: { id: board.id } };
   } catch (err) {
     console.error("[updateBoard]", err);
@@ -117,6 +120,7 @@ export async function deleteBoard(id: number): Promise<ActionResult<void>> {
   try {
     await prisma.board.delete({ where: { id } });
     revalidatePath("/");
+    syncBoardDeleted(id);
     return { success: true, data: undefined };
   } catch (err) {
     console.error("[deleteBoard]", err);
