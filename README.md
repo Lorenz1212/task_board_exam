@@ -31,8 +31,8 @@ A full-stack task management application built with Next.js 14, TypeScript, Pris
 
 ### 1. Clone the repository
 
-git clone git@github.com:Lorenz1212/task-board-system.git
-cd task-board-system
+git clone git@github.com:Lorenz1212/task_board_exam.git
+cd task_board_exam
 
 2. Install dependencies
 
